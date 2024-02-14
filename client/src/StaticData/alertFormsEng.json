@@ -1,0 +1,78 @@
+{
+    "NotProducing" : {
+        "AlertDetails" :
+        [
+            "The well needs to be repaired",
+            "The connection from the well to the treatment system needs to be repaired",
+            "Regular testing showed that there were bacteria in the water system and this problem had to be addressed",
+            "The water treatment system had to be repaired",
+            "The power is out and the pumps necessary for delivering water were not working properly and the problem had to be repaired"
+        ],
+        "ResponseDetails" : [
+            "Reduce Water: The Water Storage Tank has",
+            "days of supplies for normal usage.",
+            "Stop drinking or cooking with tap water while the system is being cleaned."
+        ],
+        "ReplacementDetails" : [
+            "Expect that drinking water will be hauled to the site to replenish stored treated water",
+            "Until further notice, purchase and ONLY use bottled water",
+            "Bottled water will be delivered"
+        ]
+    },
+    "Resolved" : {
+        "AlertDetails": [
+            "The well needed to be repaired",
+            "The connection from the well to the treatment system needed to be repaired",
+            "Regular testing showed that there were bacteria in the water system and this problem had to be addressed",
+            "The water treatment system had to be repaired",
+            "The power was out and the pumps necessary for delivering water were not working properly and the problem had to be repaired"
+        ],
+        "ResolutionDetails": [
+            "Reduce Water: The Water Storage Tank had",
+            "days of supplies for normal usage.",
+            "Residents were directed to stop drinking or cooking with tap water while the system is being cleaned."
+        ],
+        "ReplacementDetails": [
+            "Water was hauled to the site to replenish stored treated water",
+            "Until further notice, purchase and ONLY use bottled water",
+            "Bottled water will be delivered"
+        ]
+    },
+    "AlertForm" : [
+        "When did tests indicate high nitrate levels?",
+        "When do we expect the nitrate issue to be resolved?"
+    ],
+    "BacteriaForm" :[
+        "When did tests indicate high coliform bacteria levels?",
+        "When do we expect the bacteria issue to be resolved?"
+    ],
+    "ContaminationForm" : {
+        "Questions" : [
+            "When did contamination start?",
+            "When do we expect the contamination issue to be resolved?",
+            "Suspected substance",
+            "Incident Type:",
+            "Incident Location:"
+        ],
+        "Placeholders" : [
+            "Date of test",
+            "Date of expected repair",
+            "Unknown",
+            "Intrusion, break-in, etc",
+            "Well, treatment system, storage tanks, etc"
+        ]
+    },
+    "RecipientGroups1" : [
+        "UCLA WaTeR Group",
+        "State of California",
+        "Residents",
+        "Rick Sagin",
+        "Babette Sagin"
+    ],
+    "RecipientGroups2" : [
+        "UCLA WaTeR Group",
+        "State of California",
+        "Residents",
+        "Bluerock local admin"
+    ]
+}
