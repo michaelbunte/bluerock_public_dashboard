@@ -663,6 +663,7 @@ export default function BlueRockSystem() {
 
     const [current_modal_data, set_current_modal_data] = useState(
         {
+            loading: false,
             time_series_data: [],
             current_data: { time: undefined, value: undefined },
             description: "No Description",
@@ -713,6 +714,7 @@ export default function BlueRockSystem() {
         }
     }, 100);
 
+    console.log(current_modal_data)
     return (
         <>
             <svg width="100%" height="100%" viewBox="0 0 1420 780">
@@ -731,14 +733,10 @@ export default function BlueRockSystem() {
                 header={current_modal}
                 isOn={true}
                 onHide={() => set_current_modal(null)}
+                isLoading={current_modal_data["loading"]}
                 body={
                     <Row style={{ "position": "relative" }}>
-                        <Col xs={3}>
-                            <MyGauge
-                                val={current_modal_data["current_data"]["value"]}
-                            />
-                        </Col>
-                        <Col xs={9}>
+                        <Col xs={12}>
                             <StockTickerChart
                                 data={current_modal_data["time_series_data"]}
                                 yAxisTitle={modal_table_dict.get(current_modal, "units")} />

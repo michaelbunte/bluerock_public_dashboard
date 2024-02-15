@@ -1,6 +1,7 @@
 import { Modal, Button } from 'react-bootstrap';
 import { Box, Col, Row, Content, SimpleTable } from 'adminlte-2-react';
 import React, { useState } from 'react';
+import {ReactComponent as SpinnerSVG} from "../Assets/spinner.svg";
 
 let base_x_style = {
     "padding":"0px 10px",
@@ -16,8 +17,13 @@ let hover_x_style = {
 };
 
 // onHide is a callback function that is called whenever the modal is closed
-function WideModal({header="", body="", onHide=()=>{}, isOn}) {
+function WideModal({header="", body="", onHide=()=>{}, isOn, isLoading=false}) {
     const [ x_style, set_x_style ] = useState(base_x_style);
+    const loadingSymbol = 
+        <div style={{display: "flex", justifyContent: "center", opacity: "0.3", width: "100%", height: "70%"}}>
+            <SpinnerSVG style={{width: "100px", height: "100%"}}/>;
+        </div>
+
     return(
         <>
             { isOn && <div 
@@ -67,7 +73,10 @@ function WideModal({header="", body="", onHide=()=>{}, isOn}) {
                             >×</h3>
                         </div>
                         <hr style={{"borderColor": "lightgrey"}}/>
-                        {body}
+                        { ! isLoading && body}
+                        {isLoading && 
+                            loadingSymbol
+                        }
                     </div>
             </div>}
         </>

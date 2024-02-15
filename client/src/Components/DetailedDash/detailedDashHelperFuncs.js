@@ -21,8 +21,6 @@ const create_modal_table = (
 ) => {
     const modal_table_dict = initialize_modal_table_dict();
     sensor_data_table.forEach(row => {
-        // modal_table_dict[row["human_readible_name"]] = {
-
         modal_table_dict[row["internal_data_name"]] = {
             internal_data_name: row["internal_data_name"],
             human_readible_name: row["human_readible_name"],
@@ -33,6 +31,11 @@ const create_modal_table = (
             on_click: async () => {
                 set_current_modal(row["human_readible_name"]);
                 try {
+                    set_current_modal_data( prev => ({
+                        ...prev,
+                        loading: true
+                    }));
+
                     let response = await fetch(
                         `http://localhost:5001/${system_name}/sensor_all/${row["internal_data_name"]}`);
                     let current = await fetch(
@@ -42,6 +45,7 @@ const create_modal_table = (
                     
 
                     set_current_modal_data({
+                        loading: false,
                         time_series_data: response_json,
                         current_data: current_json,
                         description: row["description"],
