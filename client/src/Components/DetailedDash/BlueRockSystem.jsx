@@ -719,6 +719,12 @@ export default function BlueRockSystem() {
 
     return (
         <>
+            <button onClick={async ()=> {
+                // let response = await fetch(`http://localhost:5001/bluerock/adaptive_all_history/inletflow/${new Date('2021-01-12')},${new Date('2021-02-10')}:`);
+                let response = await fetch(`http://localhost:5001/bluerock/adaptive_all_history/inletflow/${new Date('2021-01-12')}/${new Date('2021-02-20')}`);
+            }}>
+                Click me
+            </button>
             <svg width="100%" height="100%" viewBox="0 0 1420 780">
                 <FeedTankSystem
                     md={modal_table_dict}

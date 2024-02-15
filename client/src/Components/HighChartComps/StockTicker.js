@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react';
 import Highcharts from 'highcharts/highstock';
 import HighchartsReact from 'highcharts-react-official';
+import { tree } from 'd3';
 
 const StockTickerChart = ({ 
         data, 
         title="", 
         yAxisTitle="",
-        onWindowChange=(e)=>{console.log(e.min)}
+        onWindowChange=(e)=>{console.log(e.min)} // can access e.min and e.max
     }) => {
 
     const options =
@@ -29,7 +30,7 @@ const StockTickerChart = ({
                 hour: '%l %p'
             },
             events: {
-                setExtremes: onWindowChange
+                afterSetExtremes: onWindowChange
             },
             ordinal: false
         },

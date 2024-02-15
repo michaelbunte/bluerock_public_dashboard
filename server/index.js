@@ -154,6 +154,7 @@ bluerock_plc_data WHERE (plctime AT TIME ZONE 'America/Los_Angeles') >=
 '2020-07-05 06:10:10.000' ORDER BY plctime ASC  ;
 */
 
+
 app.get(
     "/bluerock/sensor_date_range/:sensor_name/:start_date/:end_date", 
     async (req, res) => {
@@ -180,6 +181,65 @@ app.get(
         }
     }
 );
+
+// Returns entire range of data, in low resolution format
+// However, if the selected range has a width of < one month, we 
+// substitute the selected range in a higher resolution format
+app.get(
+    "/bluerock/adaptive_all_history/:sensor_name/:start_date/:end_date",
+    async (req, res) => {
+        console.log("clicked")
+        const {sensor_name, start_date, end_date } = req.params;
+        const start_date_string = js_to_pg_date_string(start_date);
+        const end_date_string = js_to_pg_date_string(end_date);
+
+
+
+        try {
+            let low_res_result = await pool.query(
+                `SELECT ${sensor_name}, ` 
+                + `(plctime AT TIME ZONE 'America/Los_Angeles') `
+                + `FROM bluerock_low_res_plc_data `
+                + 'ORDER BY plctime ASC;'
+                );
+                
+            let reformatted_low_res_result = reformat_to_simple(low_res_result, sensor_name);
+            let final_result = reformatted_low_res_result;
+
+            // if range of dates is less than a month, then inject high res data
+            if (new Date(end_date) - new Date(start_date) < (60 * 60 * 24 * 1000 * 31)) {
+                let high_res_result = await pool.query(
+                    `SELECT ${sensor_name}, ` 
+                    + `(plctime AT TIME ZONE 'America/Los_Angeles') `
+                    + `FROM bluerock_plc_data `
+                    + `WHERE `
+                    + `(plctime AT TIME ZONE 'America/Los_Angeles') >= `
+                    + `'${start_date_string}' AND `
+                    + `(plctime AT TIME ZONE 'America/Los_Angeles') <= `
+                    + `'${end_date_string}' `
+                    + 'ORDER BY plctime ASC;'
+                    );
+                    let reformatted_high_res_result = reformat_to_simple(high_res_result, sensor_name);
+                    let first_date = reformatted_high_res_result[0][0];
+                    let last_date = reformatted_high_res_result[reformatted_high_res_result.length - 1][0];
+                    let final_result_start = reformatted_low_res_result.filter((row) => row[0] < first_date);
+                    let final_result_end = reformatted_low_res_result.filter((row) => row[0] > last_date);
+                    final_result = [].concat(
+                        final_result_start,
+                        reformatted_high_res_result,
+                        final_result_end
+                    );
+            }
+            
+            console.log(final_result);
+            res.json(final_result);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+)
+
+
 
 app.get(
     "/bluerock/all_sensors_range/:start_date/:end_date",
