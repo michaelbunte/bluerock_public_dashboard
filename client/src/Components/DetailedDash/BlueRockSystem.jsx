@@ -714,7 +714,9 @@ export default function BlueRockSystem() {
         }
     }, 100);
 
-    console.log(current_modal_data)
+    console.log("current modal data")
+    console.log(current_modal_data);
+
     return (
         <>
             <svg width="100%" height="100%" viewBox="0 0 1420 780">

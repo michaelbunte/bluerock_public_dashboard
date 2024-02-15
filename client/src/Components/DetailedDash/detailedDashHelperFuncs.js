@@ -43,14 +43,17 @@ const create_modal_table = (
                     let response_json = await response.json();
                     let current_json = await current.json();
                     
+                    if (row["units"] === "boolean"){
+                        response_json = await response_json.map((tup) => [tup[0], tup[1] ? 1 : 0]);
+                    }
 
-                    set_current_modal_data({
+                    set_current_modal_data((prev) => ({
                         loading: false,
                         time_series_data: response_json,
                         current_data: current_json,
                         description: row["description"],
                         units: row["units"]
-                    });
+                    }));
                 } catch (e) {
                     console.error(e);
                 }
