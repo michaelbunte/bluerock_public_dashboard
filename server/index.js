@@ -193,6 +193,9 @@ app.get(
         const start_date_string = js_to_pg_date_string(start_date);
         const end_date_string = js_to_pg_date_string(end_date);
 
+        console.log(start_date_string);
+        console.log(end_date_string);
+
         try {
             let low_res_result = await pool.query(
                 `SELECT ${sensor_name}, ` 
@@ -216,11 +219,8 @@ app.get(
                     + `(plctime AT TIME ZONE 'America/Los_Angeles') <= `
                     + `'${end_date_string}' `
                     + 'ORDER BY plctime ASC;'
-                    );
-
-                let reformatted_high_res_result = reformat_to_simple(high_res_result, sensor_name);
-                
-                if (reformatted_high_res_result.length !== 0) {
+                );
+                    let reformatted_high_res_result = reformat_to_simple(high_res_result, sensor_name);
                     let first_date = reformatted_high_res_result[0][0];
                     let last_date = reformatted_high_res_result[reformatted_high_res_result.length - 1][0];
                     let final_result_start = reformatted_low_res_result.filter((row) => row[0] < first_date);
@@ -230,7 +230,6 @@ app.get(
                         reformatted_high_res_result,
                         final_result_end
                     );
-                }
             }
             
             console.log(final_result);

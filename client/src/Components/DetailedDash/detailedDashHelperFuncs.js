@@ -205,6 +205,7 @@ async function cache_data_if_needed(
         let response = await fetch(
             `http://localhost:5001/${system_name}/all_sensors_range/${start_time_iso}/${end_time_iso}`);
         let responsejson = await response.json();
+
         set_cached_data(responsejson);
     }
 

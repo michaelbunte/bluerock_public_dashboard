@@ -743,11 +743,13 @@ export default function BlueRockSystem() {
                                     const current_modal_inner_data_name = 
                                         Object.values(modal_table_dict).filter( value => typeof value === "object").filter(value => value["human_readible_name"] === current_modal)[0]["internal_data_name"];
                                     let response = await fetch(`http://localhost:5001/bluerock/adaptive_all_history/${current_modal_inner_data_name}/${new Date(e.min)}/${new Date(e.max)}`);
+                                    
+                                    let response_json = await response.json();
                                     chart.hideLoading();
-
+                                    console.log(response_json)
                                     set_current_modal_data((prev) => ({
                                         ...prev,
-                                        time_series_data: response 
+                                        time_series_data: response_json
                                     }))
                                 }}
                                 data={current_modal_data["time_series_data"]}
