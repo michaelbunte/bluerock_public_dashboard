@@ -714,17 +714,8 @@ export default function BlueRockSystem() {
         }
     }, 100);
 
-    console.log("current modal data")
-    console.log(current_modal_data);
-
     return (
         <>
-            <button onClick={async ()=> {
-                // let response = await fetch(`http://localhost:5001/bluerock/adaptive_all_history/inletflow/${new Date('2021-01-12')},${new Date('2021-02-10')}:`);
-                let response = await fetch(`http://localhost:5001/bluerock/adaptive_all_history/inletflow/${new Date('2021-01-12')}/${new Date('2021-02-20')}`);
-            }}>
-                Click me
-            </button>
             <svg width="100%" height="100%" viewBox="0 0 1420 780">
                 <FeedTankSystem
                     md={modal_table_dict}
@@ -746,6 +737,19 @@ export default function BlueRockSystem() {
                     <Row style={{ "position": "relative" }}>
                         <Col xs={12}>
                             <StockTickerChart
+                                onWindowChange={async (e)=>{
+                                    const { chart } = e.target;
+                                    chart.showLoading('Loading data from server...');
+                                    const current_modal_inner_data_name = 
+                                        Object.values(modal_table_dict).filter( value => typeof value === "object").filter(value => value["human_readible_name"] === current_modal)[0]["internal_data_name"];
+                                    let response = await fetch(`http://localhost:5001/bluerock/adaptive_all_history/${current_modal_inner_data_name}/${new Date(e.min)}/${new Date(e.max)}`);
+                                    chart.hideLoading();
+
+                                    set_current_modal_data((prev) => ({
+                                        ...prev,
+                                        time_series_data: response 
+                                    }))
+                                }}
                                 data={current_modal_data["time_series_data"]}
                                 yAxisTitle={modal_table_dict.get(current_modal, "units")} />
                         </Col>

@@ -12,6 +12,12 @@ const StockTickerChart = ({
 
     const options =
     {
+        navigator: {
+            adaptToUpdatedData: false
+        },
+        scrollbar: {
+            liveRedraw: false
+        },
         chart: {
             zooming: {
                 type: 'x',
