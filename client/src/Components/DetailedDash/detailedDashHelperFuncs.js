@@ -1,6 +1,9 @@
 import { AnimatedPipe } from "./DetailedDashComponents";
 import React, { useState, useEffect, useRef } from 'react';
 
+let host_string = "ec2-54-215-192-153.us-west-1.compute.amazonaws.com:5001";
+// let host_string = "localhost:5001";
+
 const initialize_modal_table_dict = () => {
     let modal_table_dict = {
         get: function (sensorname, field) {
@@ -36,9 +39,9 @@ const create_modal_table = (
                         loading: true
                     }));
 
-                    let response = await fetch(`http://localhost:5001/bluerock/adaptive_all_history/${row["internal_data_name"]}/${new Date('1980')}/${new Date('2100')}`);
+                    let response = await fetch(`http://${host_string}/bluerock/adaptive_all_history/${row["internal_data_name"]}/${new Date('1980')}/${new Date('2100')}`);
                     let current = await fetch(
-                        `http://localhost:5001/${system_name}/sensor_most_recent/${row["internal_data_name"]}`);
+                        `http://${host_string}/${system_name}/sensor_most_recent/${row["internal_data_name"]}`);
                     let response_json = await response.json();
                     let current_json = await current.json();
                     
@@ -203,7 +206,7 @@ async function cache_data_if_needed(
         let end_time_iso = new Date(end_time).toISOString();
         
         let response = await fetch(
-            `http://localhost:5001/${system_name}/all_sensors_range/${start_time_iso}/${end_time_iso}`);
+            `http://${host_string}/${system_name}/all_sensors_range/${start_time_iso}/${end_time_iso}`);
         let responsejson = await response.json();
 
         set_cached_data(responsejson);
@@ -267,6 +270,19 @@ const play_back_speeds = [
     [ 600000, "10 minutes / second"],
 ]
 
+function mapRange(value, fromMin, fromMax, toMin, toMax, clamped = false) {
+    // Ensure the input value is within the source range
+    const clampedValue = clamped ? Math.min(Math.max(value, fromMin), fromMax)
+        : value;
+
+    // Calculate the percentage of the input value within the source range
+    const percentage = (clampedValue - fromMin) / (fromMax - fromMin);
+
+    // Map the percentage to the target range and return the result
+    const mappedValue = toMin + percentage * (toMax - toMin);
+    return mappedValue;
+}
+
 export {
     create_modal_table,
     initialize_modal_table_dict,
@@ -277,5 +293,6 @@ export {
     cache_data_if_needed,
     binary_search_cache,
     useInterval,
+    mapRange,
     play_back_speeds
 };
