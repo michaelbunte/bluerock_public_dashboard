@@ -665,15 +665,6 @@ export default function BlueRockSystem() {
 
     return (
         <>
-            <MyChart
-                width={chart_width}
-                data={data}
-                x_pos_brush_1={x_pos_brush_1}
-                x_pos_brush_2={x_pos_brush_2}
-                set_x_pos_brush_1={set_x_pos_brush_1}
-                set_x_pos_brush_2={set_x_pos_brush_2}
-                loading={loading_chart}
-            />
 
             <svg width="100%" height="100%" viewBox="0 0 1420 780">
                 <FeedTankSystem
