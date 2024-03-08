@@ -421,4 +421,25 @@ app.get(
     }
 ); 
 
+app.get(
+    "/bluerock/specific_sensors_range/:sensors/:start_date/:end_date",
+    async (req, res) => {
+        const { sensors, start_date, end_date } = req.params;
+        const start_date_string = js_to_pg_date_string(start_date);
+        const end_date_string = js_to_pg_date_string(end_date);
+        try {
+            let query = `SELECT (plctime AT TIME ZONE 'America/Los_Angeles'),${sensors} `
+            + `FROM bluerock_plc_data `
+            + `WHERE `
+                + `(plctime AT TIME ZONE 'America/Los_Angeles') >= '${start_date_string}' AND `
+                + `(plctime AT TIME ZONE 'America/Los_Angeles') <= '${end_date_string}' `
+            + 'ORDER BY plctime ASC;';
+            let result = await pool.query(query);
+            res.json(result.rows);
+        } catch (e) {
+            console.error(e);
+        }
+    }
+)
+
 });

@@ -34,7 +34,7 @@ const create_modal_table = (
             on_click: async () => {
                 set_current_modal(row["human_readible_name"]);
                 try {
-                    set_current_modal_data( prev => ({
+                    set_current_modal_data(prev => ({
                         ...prev,
                         loading: true
                     }));
@@ -44,13 +44,13 @@ const create_modal_table = (
                         `http://${host_string}/${system_name}/sensor_most_recent/${row["internal_data_name"]}`);
                     let response_json = await response.json();
                     let current_json = await current.json();
-                    
-                    if (row["units"] === "boolean"){
+
+                    if (row["units"] === "boolean") {
                         response_json = await response_json.map((tup) => [tup[0], tup[1] ? 1 : 0]);
                     }
 
                     set_current_modal_data((prev) => ({
-                        ...prev, 
+                        ...prev,
                         loading: false,
                         time_series_data: response_json,
                         current_data: current_json,
@@ -117,35 +117,35 @@ const SpeedButton = ({
 
     let svg_width = ffwd ? 23 : arrowLength + right_pad;
     svg_width = pause ? 20 : svg_width;
-    
-    let contents = ffwd ? 
-    <g>
-        <AnimatedPipe
-            paths={[[[0, 7], [5, 7]]]}
-            animated={false}
-            stroke="#000000"
-        />
-        <AnimatedPipe
-            paths={[[[11, 7], [16, 7]]]}
-            animated={false}
-            stroke="#000000"
-        />
-    </g>
-        :
-    <g>
-        <AnimatedPipe
-            paths={[[[0, 7], [arrowLength, 7]]]}
-            animated={false}
-            stroke="#000000"
-        />
-        {
-            skip && <rect
-                x={`${arrowLength + 5}`} y="0"
-                width="5" height="15"
-                fill="black"
+
+    let contents = ffwd ?
+        <g>
+            <AnimatedPipe
+                paths={[[[0, 7], [5, 7]]]}
+                animated={false}
+                stroke="#000000"
             />
-        }
-    </g>;
+            <AnimatedPipe
+                paths={[[[11, 7], [16, 7]]]}
+                animated={false}
+                stroke="#000000"
+            />
+        </g>
+        :
+        <g>
+            <AnimatedPipe
+                paths={[[[0, 7], [arrowLength, 7]]]}
+                animated={false}
+                stroke="#000000"
+            />
+            {
+                skip && <rect
+                    x={`${arrowLength + 5}`} y="0"
+                    width="5" height="15"
+                    fill="black"
+                />
+            }
+        </g>;
 
     contents = pause ? <g>
         <rect
@@ -160,7 +160,7 @@ const SpeedButton = ({
         />
     </g> : contents;
 
-    let upper_text = text == "" ? <div style={{height:'5px'}}/> : <div>{text}</div>;
+    let upper_text = text == "" ? <div style={{ height: '5px' }} /> : <div>{text}</div>;
 
     return (
         <div
@@ -175,11 +175,11 @@ const SpeedButton = ({
                 "display": "flex",
                 "flexDirection": "column",
                 "alignItems": "center",
-                "justifyContent" : "center",
+                "justifyContent": "center",
                 "background": hovered ? "#eaeaea" : "#ffffff",
-                "height" : "51px",
+                "height": "51px",
                 "userSelect": "none",
-                "width" : width === null ? "auto" : `${width}`
+                "width": width === null ? "auto" : `${width}`
             }}
         >
             {upper_text}
@@ -204,7 +204,7 @@ async function cache_data_if_needed(
         let end_time = time.add(120, "minute");
         let start_time_iso = new Date(start_time).toISOString();
         let end_time_iso = new Date(end_time).toISOString();
-        
+
         let response = await fetch(
             `http://${host_string}/${system_name}/all_sensors_range/${start_time_iso}/${end_time_iso}`);
         let responsejson = await response.json();
@@ -212,18 +212,18 @@ async function cache_data_if_needed(
         set_cached_data(responsejson);
     }
 
-    if(cached_data.length === 0) {
+    if (cached_data.length === 0) {
         await reset_cached_data();
         return;
     }
 }
 
 function binary_search_cache(
-        cache, 
-        target_date // should be an ISO string
-    ) {
+    cache,
+    target_date // should be an ISO string
+) {
 
-    if (cache.length  ===  0 ) { return -1; }
+    if (cache.length === 0) { return -1; }
 
     let start_i = 0;
     let end_i = cache.length - 1;
@@ -231,7 +231,7 @@ function binary_search_cache(
     while (Math.abs(start_i - end_i) > 1) {
         let middle_i = Math.floor((start_i + end_i) / 2);
         let middle_i_date = new Date(cache[middle_i]["plctime"]);
-        
+
         if (middle_i_date <= target_date_obj) {
             start_i = middle_i;
         } else {
@@ -245,29 +245,29 @@ function binary_search_cache(
 // https://stackoverflow.com/questions/58400851/can-not-update-state-inside-setinterval-in-react-hook
 function useInterval(callback, delay) {
     const savedCallback = useRef();
-  
+
     // Remember the latest callback.
     useEffect(() => {
-      savedCallback.current = callback;
+        savedCallback.current = callback;
     }, [callback]);
-  
+
     // Set up the interval.
     useEffect(() => {
-      function tick() {
-        savedCallback.current();
-      }
-      if (delay !== null) {
-        let id = setInterval(tick, delay);
-        return () => clearInterval(id);
-      }
+        function tick() {
+            savedCallback.current();
+        }
+        if (delay !== null) {
+            let id = setInterval(tick, delay);
+            return () => clearInterval(id);
+        }
     }, [delay]);
 }
 
 const play_back_speeds = [
-    [ 1000, "Real Time"],
-    [ 10000, "10 seconds / second"],
-    [ 60000, "1 minute / second"],
-    [ 600000, "10 minutes / second"],
+    [1000, "Real Time"],
+    [10000, "10 seconds / second"],
+    [60000, "1 minute / second"],
+    [600000, "10 minutes / second"],
 ]
 
 function mapRange(value, fromMin, fromMax, toMin, toMax, clamped = false) {
