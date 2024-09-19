@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const cors = require("cors");
+const format = require('pg-format');
 const pool = require("./db");
 
 function resizeArray(originalArray, newSize) {
@@ -17,14 +18,30 @@ function resizeArray(originalArray, newSize) {
     return resizedArray;
 }
 
+function reformat_sites_info(sites_info_unformatted) {
+    let formatted = {};
+    for (let i = 0; i < sites_info_unformatted.length; i++) {
+        formatted[sites_info_unformatted[i]["site_name"]] = sites_info_unformatted[i];
+    }
+    return formatted;
+}
 
+function isValidPostgresColumnList(name) {
+    // Define the regex pattern
+    const pattern = /^[a-zA-Z_][a-zA-Z0-9_,]*$/;
+
+    // Test the name against the pattern
+    return pattern.test(name);
+}
+
+const SOMETHING_WENT_WRONG = { "result": "SOMETHING WENT WRONG" };
 
 let sites_info;
 async function setup() {
     let site_info_query_results = await pool.query(
         `SELECT * FROM site_table_names;`
     );
-    sites_info = site_info_query_results.rows;
+    sites_info = reformat_sites_info(site_info_query_results.rows);
     console.log(sites_info)
 }
 
@@ -42,7 +59,7 @@ setup().then(() => {
 
     const reformat_to_simple = (unformatted_query_response, sensor_name) => {
         return unformatted_query_response.rows.map(
-            row => [row["timezone"].getTime(), row[sensor_name]]);
+            row => [row["plctime"].getTime(), row[sensor_name]]);
     }
 
     const query_plc_database = (
@@ -54,8 +71,7 @@ setup().then(() => {
         reformat_simple = true
     ) => {
 
-        let this_site_info =
-            sites_info.find(site_info => site_info["site_name"] === system);
+        let this_site_info = sites_info[system]
 
         if (this_site_info === undefined) {
             throw new Error("Site not found in site_table_names table");
@@ -123,6 +139,7 @@ setup().then(() => {
     })
 
 
+    // OLD - remove
     app.get("/bluerock/most_recent", async (req, res) => {
         try {
             let result = await pool.query(
@@ -137,6 +154,7 @@ setup().then(() => {
         }
     });
 
+    // OLD - remove
     // expects two Date.toString() variables in PST 
     app.get(
         "/bluerock/date_range/:start_date/:end_date",
@@ -146,6 +164,7 @@ setup().then(() => {
         )
     );
 
+    // OLD - remove
     app.get(
         "/bluerock/sensor_date_range/:sensor_name/:start_date/:end_date",
         async (req, res) => {
@@ -173,6 +192,7 @@ setup().then(() => {
         }
     );
 
+    // OLD - updated
     // Returns entire range of data, in low resolution format
     // However, if the selected range has a width of < one month, we 
     // substitute the selected range in a higher resolution format
@@ -227,6 +247,7 @@ setup().then(() => {
         }
     );
 
+    // OLD - updated
     app.get(
         "/bluerock/adaptive_all_sensors/:start_date/:end_date",
         async (req, res) => {
@@ -260,7 +281,7 @@ setup().then(() => {
     )
 
 
-
+    // OLD - removed
     app.get(
         "/bluerock/all_sensors_range/:start_date/:end_date",
         async (req, res) => {
@@ -284,6 +305,7 @@ setup().then(() => {
         }
     );
 
+    // OLD - removed
     app.get(
         "/bluerock/all_sensors_around/:date/:range",
         async (req, res) => {
@@ -314,6 +336,7 @@ setup().then(() => {
         }
     );
 
+    // OLD - removed
     app.get(
         "/bluerock/sensor_all/:sensor_name",
         async (req, res) => {
@@ -333,6 +356,7 @@ setup().then(() => {
         }
     );
 
+    // OLD - removed
     app.get(
         "/bluerock/sensor_most_recent/:sensor_name",
         async (req, res) => {
@@ -365,6 +389,7 @@ setup().then(() => {
         }
     );
 
+    // OLD - removed
     app.get(
         "/bluerock/system_image/:search_time",
         async (req, res) => {
@@ -386,7 +411,7 @@ setup().then(() => {
         }
     )
 
-
+    // OLD - updated
     app.get(
         "/bluerock/sensor_info_table",
         async (req, res) => {
@@ -399,6 +424,7 @@ setup().then(() => {
         }
     );
 
+    // OLD - updated
     app.get(
         "/bluerock/specific_sensors_range/:sensors/:start_date/:end_date",
         async (req, res) => {
@@ -420,4 +446,133 @@ setup().then(() => {
         }
     )
 
+    // ===================================================== 
+    // NEW
+
+    app.get(
+        "/sensor_info_table/:site_name",
+        async (req, res) => {
+            try {
+                const { site_name } = req.params;
+                const sensor_info_table_name = sites_info[site_name]["sensor_info_table"];
+                let query = format('SELECT * FROM %I;', sensor_info_table_name);
+                let result = await pool.query(query);
+                res.json(result.rows);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    );
+
+    app.get(
+        "/adaptive_all_sensors/:site_name/:start_date/:end_date",
+        async (req, res) => {
+            const { start_date, end_date, site_name } = req.params;
+            
+            const site_plc_table_name = sites_info[site_name]["data_sensor_table"];
+            const start_date_string = js_to_pg_date_string(start_date);
+            const end_date_string = js_to_pg_date_string(end_date);
+            const ADAPTIVE_LIMIT_SIZE = 1000;
+            try {
+                let query = format(
+                    `SELECT *`
+                    + `FROM %I `
+                    + `WHERE plctime >= %L AND plctime <= %L `
+                    + 'ORDER BY plctime ASC;', site_plc_table_name, start_date_string, end_date_string
+                )
+                let result = await pool.query(query);
+                if (result.rows.length === 0) {
+                    res.json(result.rows);
+                    return;
+                }
+
+                let output = [];
+                let step_size = Math.max(result.rows.length / ADAPTIVE_LIMIT_SIZE, 1);
+                for (let i = 0; i < result.rows.length; i += step_size) {
+                    output.push(result.rows[Math.floor(i)]);
+                }
+                res.json(output);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    )
+
+    app.get(
+        "/specific_sensors_range/:site_name/:sensors/:start_date/:end_date",
+        async (req, res) => {
+            try {
+                const { site_name, sensors, start_date, end_date } = req.params;
+                if (!isValidPostgresColumnList(sensors)) { throw Error(); }
+
+                const site_plc_table_name = sites_info[site_name]["data_sensor_table"];
+                const start_date_string = js_to_pg_date_string(start_date);
+                const end_date_string = js_to_pg_date_string(end_date);
+                let query = format(`SELECT plctime, ${sensors} `
+                    + `FROM %I WHERE `
+                    + `plctime  >= %L AND plctime <= %L `
+                    + 'ORDER BY plctime ASC;', site_plc_table_name, start_date_string, end_date_string);
+                let result = await pool.query(query);
+                res.json(result.rows);
+            } catch (e) {
+                console.error(e);
+                res.json(SOMETHING_WENT_WRONG)
+            }
+        }
+    )
+
+    // Returns entire range of data, in low resolution format
+    // However, if the selected range has a width of < one month, we 
+    // substitute the selected range in a higher resolution format
+    app.get(
+        "/adaptive_all_history/:site_name/:sensor_name/:start_date/:end_date",
+        async (req, res) => {
+            const { sensor_name, start_date, end_date, site_name } = req.params;
+            const start_date_string = js_to_pg_date_string(start_date);
+            const end_date_string = js_to_pg_date_string(end_date);
+
+            const low_res_plc_table_name = sites_info[site_name]["low_res_table"];
+            const high_res_plc_table_name = sites_info[site_name]["data_sensor_table"];
+
+            try {
+                let low_res_query = format(
+                    `SELECT %I, plctime FROM %I `
+                    + 'ORDER BY plctime ASC;', sensor_name, low_res_plc_table_name
+                )
+
+                let low_res_result = await pool.query(low_res_query);
+
+                let reformatted_low_res_result = reformat_to_simple(low_res_result, sensor_name);
+                let final_result = reformatted_low_res_result;
+
+                // if range of dates is less than 4 months, then inject high res data
+                if (new Date(end_date) - new Date(start_date) < (4 * 60 * 60 * 24 * 1000 * 31)) {
+                    
+                    const high_res_query = format(
+                        `SELECT %I, plctime FROM %I `
+                        + `WHERE plctime >= %L AND `
+                        + `plctime  <= %L `
+                        + 'ORDER BY plctime ASC;', 
+                        sensor_name, high_res_plc_table_name, start_date_string, end_date_string
+                    )
+
+                    let high_res_result = await pool.query(high_res_query);
+                    let reformatted_high_res_result = resizeArray(
+                        reformat_to_simple(high_res_result, sensor_name), 2000);
+                    let first_date = reformatted_high_res_result[0][0];
+                    let last_date = reformatted_high_res_result[reformatted_high_res_result.length - 1][0];
+                    let final_result_start = reformatted_low_res_result.filter((row) => row[0] < first_date);
+                    let final_result_end = reformatted_low_res_result.filter((row) => row[0] > last_date);
+                    final_result = [].concat(
+                        final_result_start,
+                        reformatted_high_res_result,
+                        final_result_end
+                    );
+                }
+                res.json(final_result);
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    );
 });
