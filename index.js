@@ -467,13 +467,13 @@ setup().then(() => {
     app.get(
         "/adaptive_all_sensors/:site_name/:start_date/:end_date",
         async (req, res) => {
-            const { start_date, end_date, site_name } = req.params;
-            
-            const site_plc_table_name = sites_info[site_name]["data_sensor_table"];
-            const start_date_string = js_to_pg_date_string(start_date);
-            const end_date_string = js_to_pg_date_string(end_date);
-            const ADAPTIVE_LIMIT_SIZE = 1000;
             try {
+                const { start_date, end_date, site_name } = req.params;
+                
+                const site_plc_table_name = sites_info[site_name]["data_sensor_table"];
+                const start_date_string = js_to_pg_date_string(start_date);
+                const end_date_string = js_to_pg_date_string(end_date);
+                const ADAPTIVE_LIMIT_SIZE = 1000;
                 let query = format(
                     `SELECT *`
                     + `FROM %I `
@@ -527,14 +527,15 @@ setup().then(() => {
     app.get(
         "/adaptive_all_history/:site_name/:sensor_name/:start_date/:end_date",
         async (req, res) => {
-            const { sensor_name, start_date, end_date, site_name } = req.params;
-            const start_date_string = js_to_pg_date_string(start_date);
-            const end_date_string = js_to_pg_date_string(end_date);
-
-            const low_res_plc_table_name = sites_info[site_name]["low_res_table"];
-            const high_res_plc_table_name = sites_info[site_name]["data_sensor_table"];
-
+            
             try {
+                const { sensor_name, start_date, end_date, site_name } = req.params;
+                const start_date_string = js_to_pg_date_string(start_date);
+                const end_date_string = js_to_pg_date_string(end_date);
+    
+                const low_res_plc_table_name = sites_info[site_name]["low_res_table"];
+                const high_res_plc_table_name = sites_info[site_name]["data_sensor_table"];
+
                 let low_res_query = format(
                     `SELECT %I, plctime FROM %I `
                     + 'ORDER BY plctime ASC;', sensor_name, low_res_plc_table_name
