@@ -383,7 +383,7 @@ setup().then(() => {
                     time: time,
                     value: value
                 });
-            } catch (e) {
+            } catch (e) {https://www.ncbi.nlm.nih.gov/core/lw/2.0/html/tileshop_pmc/tileshop_pmc_inline.html?title=Click%20on%20image%20to%20zoom&p=PMC3&id=7828932_45-4-279f2.jpg
                 console.error(e);
             }
         }
@@ -459,6 +459,7 @@ setup().then(() => {
                 let result = await pool.query(query);
                 res.json(result.rows);
             } catch (e) {
+                console.error(req.url);
                 console.error(e);
             }
         }
@@ -493,7 +494,9 @@ setup().then(() => {
                 }
                 res.json(output);
             } catch (e) {
-                console.error(e);
+                console.error(req.url);
+                console.error(e)
+                res.json(SOMETHING_WENT_WRONG)
             }
         }
     )
@@ -572,7 +575,9 @@ setup().then(() => {
                 }
                 res.json(final_result);
             } catch (e) {
+                console.error(req.url);
                 console.error(e);
+                res.json(SOMETHING_WENT_WRONG)
             }
         }
     );
