@@ -537,6 +537,7 @@ setup().then(() => {
                 const end_date_string = js_to_pg_date_string(end_date);
     
                 const low_res_plc_table_name = sites_info[site_name]["low_res_table"];
+                const med_res_plc_table_name = sites_info[site_name]["med_res_table"];
                 const high_res_plc_table_name = sites_info[site_name]["data_sensor_table"];
 
                 let low_res_query = format(
@@ -549,18 +550,28 @@ setup().then(() => {
                 let reformatted_low_res_result = reformat_to_simple(low_res_result, sensor_name);
                 let final_result = reformatted_low_res_result;
 
-                // if range of dates is less than 4 months, then inject high res data
-                if (new Date(end_date) - new Date(start_date) < (4 * 60 * 60 * 24 * 1000 * 31)) {
-                    
-                    const high_res_query = format(
+                let higher_res_query = "";
+                if (new Date(end_date) - new Date(start_date) < (12 * 24 * 60 * 60  * 1000)) { // less than 12 days
+                    higher_res_query = format(
                         `SELECT %I, plctime FROM %I `
                         + `WHERE plctime >= %L AND `
                         + `plctime  <= %L `
                         + 'ORDER BY plctime ASC;', 
                         sensor_name, high_res_plc_table_name, start_date_string, end_date_string
-                    )
+                    );
+                } else if (new Date(end_date) - new Date(start_date) < (4 * 31 * 24 * 60 * 60  * 1000)) { // less than 4 months
+                    higher_res_query = format(
+                        `SELECT %I, plctime FROM %I `
+                        + `WHERE plctime >= %L AND `
+                        + `plctime  <= %L `
+                        + 'ORDER BY plctime ASC;', 
+                        sensor_name, med_res_plc_table_name, start_date_string, end_date_string
+                    );
+                }
 
-                    let high_res_result = await pool.query(high_res_query);
+                // if range of dates is less than 4 months, then inject higher res data
+                if (higher_res_query !== "") {
+                    let high_res_result = await pool.query(higher_res_query);
                     let reformatted_high_res_result = resizeArray(
                         reformat_to_simple(high_res_result, sensor_name), 2000);
                     let first_date = reformatted_high_res_result[0][0];
@@ -577,7 +588,8 @@ setup().then(() => {
             } catch (e) {
                 console.error(req.url);
                 console.error(e);
-                res.json(SOMETHING_WENT_WRONG)
+                // res.json(SOMETHING_WENT_WRONG)
+                res.json([])
             }
         }
     );
