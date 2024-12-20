@@ -173,3 +173,6 @@
 /server/.svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/node
+.env
+
+/node_modules
