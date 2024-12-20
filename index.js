@@ -134,9 +134,10 @@ setup().then(() => {
         };
     }
 
-    app.listen(5001, async () => {
-        console.log("server has started on port 5001");
-    })
+    app.listen(5001, '127.0.0.1', async () => {
+        console.log("Server has started on port 5001 and is bound to localhost");
+    });
+    
 
 
     // OLD - remove
